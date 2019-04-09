@@ -1,0 +1,5 @@
+*.o
+build/*
+*.out
+test.c
+.vscode/*
