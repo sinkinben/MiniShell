@@ -14,7 +14,7 @@ READLINE_DIR =  /lib/x86_64-linux-gnu/libreadline.so.6
 CC := gcc
 LD := gcc
 CFLAGS := -Wall -I $(INC_DIR)
-LFLAGS := $(CFLAGS) -L $(READLINE_DIR) -lreadline -lpthread
+LFLAGS := $(CFLAGS) -lreadline -lpthread
 
 #All C Files
 C_FILES := $(wildcard $(SRC_DIR)/*/*.c)
@@ -22,8 +22,6 @@ C_FILES := $(wildcard $(SRC_DIR)/*/*.c)
 #All Obj Files
 OBJ_FILES := $(patsubst %.c, %.o, $(subst $(SRC_DIR), $(OBJ_DIR), $(C_FILES)))
 
-#dynamic lib
-LIBS = /lib/x86_64-linux-gnu/libreadline.so
 
 #Build .c to .o
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c

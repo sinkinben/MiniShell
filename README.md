@@ -1,5 +1,5 @@
 # MiniShell
-Author: Kinben Sin 
+Author: Kinben Sin   
 E-mail: sinkinben@{qq, outlook, gmail}.com  
 
 # Progress
