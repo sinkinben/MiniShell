@@ -1,14 +1,14 @@
 # MiniShell
-Author: Kinben Sin  
+Author: Kinben Sin 
 E-mail: sinkinben@{qq, outlook, gmail}.com  
 
-#Progress
+# Progress
 * Only support single command in a line
+* Finish buildin-command: cd, exit, pwd
 
 # TODO List
 * `Tab` to auto-complete the command
 * Parse command strings
-* Build in commands: cd, pwd, exit
 * External commands: achieve by execvp
 * Multiple progress
 * MUltiple threads
