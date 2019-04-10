@@ -3,7 +3,7 @@
 #define CMDS_LEN 16
 static char input[BUFF_SIZE] = {0};  //input buffer
 static char title[BUFF_SIZE] = ">>"; //shell prompt
-static char *line = NULL;            //to read line from stdin
+static char *line = NULL;                   //to read line from stdin
 struct passwd *user;                 //get current user from os
 //static cmd_t cmds[CMDS_LEN];
 void get_title()
@@ -50,7 +50,20 @@ void ui_mainloop()
             continue;
         else
         {
-            
+            pid_t pid = fork();
+            if (pid < 0)
+                warning("external command fork error\n");
+            if (pid == 0)
+            {
+                external_handler(argv);
+            }
+            if (pid > 0)
+            {
+                int status = 0;
+                waitpid(pid, &status, 0);
+                if (!status)
+                    warning("external command execute error\n");
+            }
         }
     }
 }

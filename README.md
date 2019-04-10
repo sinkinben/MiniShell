@@ -3,18 +3,19 @@ Author: Kinben Sin
 E-mail: sinkinben@{qq, outlook, gmail}.com  
 
 # Progress
-* Only support single command in a line
 * Finish buildin-command: cd, exit, pwd
+* Finish external command by execvp
+* Support more than one commands like `cat /etc/passwd | wc -l | wc | wc -l | grep 1 >> log`
 
 # TODO List
 * `Tab` to auto-complete the command
 * Parse command strings
 * External commands: achieve by execvp
 * Multiple progress
-* MUltiple threads
+* Multiple threads
 
 # How to build&run MiniShell
-Just run this command in dir `MiniShell`.
+Just type this command in dir `MiniShell`.
 ```
 make run
 ```
