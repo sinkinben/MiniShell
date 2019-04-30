@@ -107,7 +107,7 @@ void ui_mainloop()
         memcpy(input_buf, cmd_str, strlen(cmd_str));
 
         formatter(input_buf);
-        printf("[%s]\n", input_buf);
+        
         int cmd_num = make_cmds(input_buf, BUFF_SIZE, cmds, CMDS_LEN);
 
         if (buildin_handler(&cmds[0]) != -1)
@@ -124,7 +124,6 @@ void ui_mainloop()
             }
 #endif
             pid_t pid = fork();
-            int status = 0;
             if (pid < 0)
             {
                 fprintf(stderr, "fork failed\n");
@@ -132,14 +131,13 @@ void ui_mainloop()
             }
             else if (pid == 0)
             {
-                puts("in child");
-                log("cmd_num = %d\n", cmd_num);
                 external_handler(cmds, cmd_num, cmd_num - 1);
             }
             else
             {
+                int status = 0;
                 waitpid(pid, &status, 0);
-                if (!status)
+                if ((WEXITSTATUS(status)) == EXIT_FAILURE)
                     perror("in parent process");
             }
         }

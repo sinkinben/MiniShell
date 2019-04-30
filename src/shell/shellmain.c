@@ -2,6 +2,6 @@
 #include "shell.h"
 int main()
 {
-    puts("Welcome to MiniShell :)");
+    printf("\033[1;31;47mWelcome to MiniShell v1.0\033[0m\n");
     ui_mainloop();
 }

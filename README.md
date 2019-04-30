@@ -3,14 +3,14 @@ Author: Kinben Sin
 E-mail: sinkinben@{qq, outlook, gmail}.com  
 
 # Progress
-* Finish buildin-command: cd, exit, pwd
+* Finish buildin-commands
 * Finish external command by execvp
 * Support more than one commands like `cat /etc/passwd | wc -l | wc | wc -l | grep 1 >> log`
 
 # TODO List
-* External commands: achieve by execvp
 * Multiple progress achieve by token '&'
-* Load external commands like `myecho`, `mycp`, `mytree`, etc.
+* Load external commands like `myecho`, `mycp`, `mytree`, etc  
+* To support the token `<<`
 
 # How to build&run MiniShell
 Just type this command in dir `MiniShell`.
@@ -32,4 +32,18 @@ Now is still in the design phase.:)
 >> command [argv] << file
 >> command [argv] | command1 [argv1] | ... | commandn [argvn]
 >> command [argv] [< inputfile] [> outputfile] [| command2 ...]
+```
+
+# Test Cases
+```
+cd
+pwd
+exit
+tree
+help
+echo a b c
+cat /etc/passwd
+echo hello >log
+cat /etc/passwd | wc -l
+cat <input.txt | sort | uniq | cat >output.txt
 ```

@@ -2,7 +2,7 @@
 #define MACRO_H
 
 
-#define DEBUG
+//#define DEBUG
 
 #define panic(format, ...) \
   do { \

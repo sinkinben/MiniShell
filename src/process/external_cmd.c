@@ -106,5 +106,5 @@ void external_handler(cmd_t cmds[], int cmd_num, int depth)
         execvp(name, argv);
         exit(EXIT_SUCCESS);
     }
-    exit(EXIT_SUCCESS);
+    exit(EXIT_FAILURE);
 }
