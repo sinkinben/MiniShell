@@ -10,7 +10,7 @@ E-mail: sinkinben@{qq, outlook, gmail}.com
 # TODO List
 * External commands: achieve by execvp
 * Multiple progress achieve by token '&'
-* Load external commands lile `myecho`, `mycp`, `mytree`, etc.
+* Load external commands like `myecho`, `mycp`, `mytree`, etc.
 
 # How to build&run MiniShell
 Just type this command in dir `MiniShell`.

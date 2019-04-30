@@ -14,12 +14,28 @@ void test1()
     formatter(str, BUFSIZ);
     printf("[%s]\n", str);
 }
+void test2()
+{
+    char buffer[BUFSIZ];
+    getcwd(buffer, BUFSIZ);
+
+    puts(buffer);
+    tree("/home/sin/desktop/workspace/OSLab/MiniShell", 0);
+    
+    memset(buffer, 0, sizeof(buffer));
+    getcwd(buffer, BUFSIZ);
+    puts(buffer);
+
+}
 int main()
 {
-    tree("/home/sin/desktop/workspace/OSLab/MiniShell", 0);
+    test2();
 }
 void tree(char *dir, int depth)
 {
+    char cwd_buff[128];
+    getcwd(cwd_buff, sizeof(cwd_buff));
+
     DIR *dp;
     struct dirent *entry;
     struct stat statbuf;
@@ -34,7 +50,7 @@ void tree(char *dir, int depth)
         lstat(entry->d_name, &statbuf);
         if (S_ISDIR(statbuf.st_mode))
         {
-            if (strcmp(".", entry->d_name) == 0 || strcmp("..", entry->d_name) == 0)
+            if (strcmp(".", entry->d_name) == 0 || strcmp("..", entry->d_name) == 0 || entry->d_name[0] == '.')
             {
                 continue;
             }
@@ -45,9 +61,8 @@ void tree(char *dir, int depth)
         {
             printf("%*s%s\n", depth, "", entry->d_name);
         }
-        
     }
-    chdir("..");
+    chdir(cwd_buff); //switch to original dir
     closedir(dp);
 }
 void insert_space(char buf[], int buf_size, int pos)
@@ -94,3 +109,5 @@ void formatter(char *buf, int buf_size)
             insert_space(buf, buf_size, i + 1);
     }
 }
+
+

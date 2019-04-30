@@ -9,7 +9,11 @@
 #include <pwd.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <dirent.h>
+
 #include <sys/types.h>
+#include <sys/stat.h>
+
 #include <readline/readline.h>
 #include <readline/history.h>
 
