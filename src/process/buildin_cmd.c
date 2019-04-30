@@ -10,14 +10,14 @@ struct
     {"exit", buildin_exit, "exit MiniShell"}};
 #define NR_BUILDIN_LIST ((sizeof(buildin_list)) / (sizeof(buildin_list[0])))
 
-int buildin_handler(char *argv[])
+int buildin_handler(cmd_t *cmd)
 {
     int i = 0;
     for (i = 0; i < NR_BUILDIN_LIST; i++)
     {
-        if (strcmp(buildin_list[i].name, argv[0]) == 0)
+        if (strcmp(buildin_list[i].name, cmd->name) == 0)
         {
-            return buildin_list[i].handler(argv[1]);
+            return buildin_list[i].handler(cmd->args);
         }
     }
     return -1;

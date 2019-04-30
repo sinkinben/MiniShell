@@ -114,6 +114,22 @@ void ui_mainloop()
             putchar('\n');
         }
 #endif
+        if (buildin_handler(&cmds[0]) != -1)
+            continue;
+        else
+        {
+            pid_t pid = fork();
+            if (pid == 0)
+            {
+                puts("in child process");
+            }
+            else
+            {
+                waitpid(pid, NULL, 0);
+            }
+            
+        }
+        
 
         
     }
