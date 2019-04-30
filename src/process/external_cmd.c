@@ -1,7 +1,7 @@
 #include <unistd.h>
 #include <string.h>
 #include "process.h"
-int external_handler(char *argv[])
+void external_handler(char *argv[])
 {
     char buff[1024] = "";
     int i = 0;

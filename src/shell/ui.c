@@ -1,11 +1,10 @@
 #include "shell.h"
 #define BUFF_SIZE 512
 #define CMDS_LEN 16
-static char input[BUFF_SIZE] = {0};  //input buffer
 static char title[BUFF_SIZE] = ">>"; //shell prompt
-static char *line = NULL;                   //to read line from stdin
+static char *line = NULL;            //to read line from stdin
 struct passwd *user;                 //get current user from os
-//static cmd_t cmds[CMDS_LEN];
+static cmd_t cmds[CMDS_LEN];
 void get_title()
 {
     //TODO：title = <user>@<cwd>:
@@ -29,41 +28,93 @@ char *get_line(char *prompt)
     return line;
 }
 
+int make_cmds(char buf[], int buf_size, cmd_t cmds[], int cmds_size)
+{
+    int i = 0;
+    char *name = strtok(buf, " ");
+    char *args = strtok(NULL, " ");
+    strcpy(cmds[i].name, name);
+
+    while (args)
+    {
+        if (strcmp(args, "<") == 0)
+        {
+            cmds[i].attr.redir_stdin = REDIR_IN1;
+            args = strtok(NULL, " ");
+            strcpy(cmds[i].src_file, args);
+        }
+        else if (strcmp(args, "<<") == 0)
+        {
+            cmds[i].attr.redir_stdin = REDIR_IN2;
+            args = strtok(NULL, " ");
+            strcpy(cmds[i].src_file, args);
+        }
+        else if (strcmp(args, ">") == 0)
+        {
+            cmds[i].attr.redir_stdout = REIDR_OUT_CLEAR;
+            args = strtok(NULL, " ");
+            strcpy(cmds[i].dst_file, args);
+        }
+        else if (strcmp(args, ">>") == 0)
+        {
+            cmds[i].attr.redir_stdout = REDIR_OUT_APPEND;
+            args = strtok(NULL, " ");
+            strcpy(cmds[i].dst_file, args);
+        }
+        else if (strcmp(args, "|") == 0)
+        {
+            cmds[i].attr.pipe_flag |= PIPE_IN;
+            i++;
+            cmds[i].attr.pipe_flag |= PIPE_OUT;
+            name = strtok(NULL, " ");
+            strcpy(cmds[i].name, name);
+        }
+        else
+        {
+            strcat(cmds[i].args, args);
+            strcat(cmds[i].args, " ");
+        }
+        args = strtok(NULL, " ");
+    }
+
+    int cmd_num = i + 1;
+    int len;
+    for (i = 0; i < cmd_num; i++)
+    {
+        len = strlen(cmds[i].args);
+        if (len >= 1 && cmds[i].args[len - 1] == ' ')
+            cmds[i].args[len - 1] = 0;
+    }
+    return cmd_num;
+}
+
 void ui_mainloop()
 {
-    char *str = NULL;
-    char *argv[1024] = {0};
-    int argv_num = 0;
-    const int argv_size = 1024;
+    char *cmd_str;
+    char input_buf[BUFF_SIZE] = {0};
     user = getpwuid(getuid());
     while (true)
     {
         get_title();
-        str = get_line(title);
-        memset(argv, 0, sizeof(argv));
-        memset(input, 0, sizeof(input));
-        memcpy(input, str, strlen(str));
-        
-        argv_num = make_argv(input, BUFF_SIZE, argv, argv_size);
+        cmd_str = get_line(title);
+        memset(input_buf, 0, sizeof(input_buf));
+        memset(cmds, 0, sizeof(cmds));
+        memcpy(input_buf, cmd_str, strlen(cmd_str));
 
-        if (buildin_handler(argv) != -1)
-            continue;
-        else
+        formatter(input_buf);
+
+        int cmd_num = make_cmds(input_buf, BUFF_SIZE, cmds, CMDS_LEN);
+
+#ifdef DEBUG
+        int i = 0;
+        for (i = 0; i < cmd_num; i++)
         {
-            pid_t pid = fork();
-            if (pid < 0)
-                warning("external command fork error\n");
-            if (pid == 0)
-            {
-                external_handler(argv);
-            }
-            if (pid > 0)
-            {
-                int status = 0;
-                waitpid(pid, &status, 0);
-                if (!status)
-                    warning("external command execute error\n");
-            }
+            log("[%s], [%s], [src=%s], [dst=%s]", cmds[i].name, cmds[i].args, cmds[i].src_file, cmds[i].dst_file);
+            log("[redin = %d], [redout = %d], [pipe = %d]", cmds[i].attr.redir_stdin, cmds[i].attr.redir_stdout, cmds[i].attr.pipe_flag);
+            putchar('\n');
         }
+#endif
+
+        
     }
 }

@@ -6,7 +6,7 @@ int buildin_cd(char *);
 int buildin_pwd(char *);
 int buildin_exit(char *);
 
-int external_handler();
+void external_handler();
 
 extern struct passwd *user;
 
