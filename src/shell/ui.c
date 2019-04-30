@@ -43,7 +43,7 @@ void ui_mainloop()
         memset(argv, 0, sizeof(argv));
         memset(input, 0, sizeof(input));
         memcpy(input, str, strlen(str));
-
+        
         argv_num = make_argv(input, BUFF_SIZE, argv, argv_size);
 
         if (buildin_handler(argv) != -1)
