@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <errno.h>
 void tree(char *dir, int depth);
 void formatter(char *buf, int buf_size);
 void test1()
@@ -27,9 +28,10 @@ void test2()
     puts(buffer);
 
 }
+
 int main()
 {
-    test2();
+    printf("%d %d\n", EXIT_SUCCESS, EXIT_FAILURE);
 }
 void tree(char *dir, int depth)
 {

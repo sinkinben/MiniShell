@@ -5,7 +5,7 @@
 static char title[BUFF_SIZE] = ">>"; //shell prompt
 static char *line = NULL;            //to read line from stdin
 struct passwd *user;                 //get current user from os
-static cmd_t cmds[CMDS_LEN];
+cmd_t cmds[CMDS_LEN];
 void get_title()
 {
     //TODO：title = <user>@<cwd>:
@@ -98,41 +98,50 @@ void ui_mainloop()
     {
         get_title();
         cmd_str = get_line(title);
+
+        if (strcmp(cmd_str, "") == 0)
+            continue;
+        
         memset(input_buf, 0, sizeof(input_buf));
         memset(cmds, 0, sizeof(cmds));
         memcpy(input_buf, cmd_str, strlen(cmd_str));
 
         formatter(input_buf);
-
+        printf("[%s]\n", input_buf);
         int cmd_num = make_cmds(input_buf, BUFF_SIZE, cmds, CMDS_LEN);
 
-#ifdef DEBUG
-        int i = 0;
-        for (i = 0; i < cmd_num; i++)
-        {
-            log("[%s], [%s], [src=%s], [dst=%s]", cmds[i].name, cmds[i].args, cmds[i].src_file, cmds[i].dst_file);
-            log("[redin = %d], [redout = %d], [pipe = %d]", cmds[i].attr.redir_stdin, cmds[i].attr.redir_stdout, cmds[i].attr.pipe_flag);
-            putchar('\n');
-        }
-#endif
         if (buildin_handler(&cmds[0]) != -1)
             continue;
         else
         {
-            pid_t pid = fork();
-            if (pid == 0)
+#ifdef DEBUG
+            int i = 0;
+            for (i = 0; i < cmd_num; i++)
             {
-                puts("in child process");
-                external_handler(cmds, cmd_num);
+                log("[%s], [%s], [src=%s], [dst=%s]", cmds[i].name, cmds[i].args, cmds[i].src_file, cmds[i].dst_file);
+                log("[redin = %d], [redout = %d], [pipe = %d]", cmds[i].attr.redir_stdin, cmds[i].attr.redir_stdout, cmds[i].attr.pipe_flag);
+                putchar('\n');
+            }
+#endif
+            pid_t pid = fork();
+            int status = 0;
+            if (pid < 0)
+            {
+                fprintf(stderr, "fork failed\n");
+                continue;
+            }
+            else if (pid == 0)
+            {
+                puts("in child");
+                log("cmd_num = %d\n", cmd_num);
+                external_handler(cmds, cmd_num, cmd_num - 1);
             }
             else
             {
-                waitpid(pid, NULL, 0);
+                waitpid(pid, &status, 0);
+                if (!status)
+                    perror("in parent process");
             }
-            
         }
-        
-
-        
     }
 }

@@ -9,7 +9,7 @@ int buildin_tree(char *args);
 int buildin_help(char *args);
 void tree(const char *dir, int depth);
 
-void external_handler();
+void external_handler(cmd_t cmds[], int cmd_num, int depth);
 
 extern struct passwd *user;
 

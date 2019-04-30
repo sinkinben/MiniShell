@@ -45,21 +45,22 @@ void formatter(char *buf, int buf_size)
         else if (buf[i] == '|' && buf[i + 1] != ' ')
             insert_space(buf, buf_size, i + 1);
     }
+    int len = strlen(buf);
+    if (buf[len - 1] == ' ')
+        buf[len - 1] = 0;
 }
 
-int make_argv(char *buf, int buff_size, char *argv[], int argv_size)
+int make_argv(char *name, char args[], char *argv[], int argv_size)
 {
-    int argv_num = 0;
-    int i;
-    argv[argv_num++] = buf;
-    for (i = 0; i < buff_size - 1; i++)
+    int i = 0;
+    argv[i++] = name;
+    char *p = strtok(args, " ");
+    while (p)
     {
-        if (buf[i] == 0 && buf[i + 1] != 0)
-        {
-            argv[argv_num++] = (buf + i + 1);
-            if (argv_num == argv_size)
-                break;
-        }
+        argv[i++] = p;
+        if (i == argv_size)
+            break;
+        p = strtok(NULL, " ");
     }
-    return argv_num;
+    return i;
 }

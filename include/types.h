@@ -21,8 +21,10 @@ typedef union {
     unsigned int attr_val;
 } cmd_attr;
 
+
 #define CMD_NAME_LEN 32
 #define CMD_ARGS_LEN 64
+#define CMD_ARGV_LEN 32
 #define CMD_FILE_LEN 16
 typedef struct
 {

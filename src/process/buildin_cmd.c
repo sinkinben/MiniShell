@@ -105,4 +105,5 @@ int buildin_help(char *args)
     {
         printf("[%s]: %s\n", buildin_list[i].name, buildin_list[i].doc);
     }
+    return 0;
 }
