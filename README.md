@@ -8,11 +8,9 @@ E-mail: sinkinben@{qq, outlook, gmail}.com
 * Support more than one commands like `cat /etc/passwd | wc -l | wc | wc -l | grep 1 >> log`
 
 # TODO List
-* `Tab` to auto-complete the command
-* Parse command strings
 * External commands: achieve by execvp
-* Multiple progress
-* Multiple threads
+* Multiple progress achieve by token '&'
+* Load external commands lile `myecho`, `mycp`, `mytree`, etc.
 
 # How to build&run MiniShell
 Just type this command in dir `MiniShell`.

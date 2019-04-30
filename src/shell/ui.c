@@ -1,4 +1,5 @@
 #include "shell.h"
+#include <assert.h>
 #define BUFF_SIZE 512
 #define CMDS_LEN 16
 static char title[BUFF_SIZE] = ">>"; //shell prompt
@@ -122,6 +123,7 @@ void ui_mainloop()
             if (pid == 0)
             {
                 puts("in child process");
+                external_handler(cmds, cmd_num);
             }
             else
             {

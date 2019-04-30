@@ -1,11 +1,11 @@
 #include <unistd.h>
 #include <string.h>
+#include <assert.h>
+#include <stdio.h>
 #include "process.h"
-void external_handler(char *argv[])
+#include "macro.h"
+void external_handler(cmd_t cmds[], int cmd_num)
 {
-    char buff[1024] = "";
-    int i = 0;
-    while (argv[i] != NULL)
-        strcat(buff, argv[i++]), strcat(buff, " ");
-    execlp("/bin/sh", "sh", "-c", buff, NULL);
+    log("not finish external command\n");
+    assert(0);
 }

@@ -42,7 +42,7 @@ clean :
 
 run : 
 	-make
-	./$(BIN_DIR)/$(MiniShell)
+	$(BIN_DIR)/$(MiniShell)
 
 test :
 	gcc test.c -o a.out

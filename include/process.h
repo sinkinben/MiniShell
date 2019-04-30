@@ -1,6 +1,6 @@
 #ifndef PROCESS_H
 #define PROCESS_H
-
+#include "types.h"
 int buildin_handler(cmd_t *);
 int buildin_cd(char *);
 int buildin_pwd(char *);
