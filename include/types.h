@@ -16,11 +16,11 @@ typedef union {
     {
         unsigned int redir_stdout : 2; //00 means no redirection, 01 means '>', 11 means '>>'
         unsigned int redir_stdin : 2;  //00 means no redirection, 01 means '<', 11 means '<<'
-        unsigned int pipe_flag : 2;    //00 means no pipe, 10 means pipe-in-cmd, 01 means pipe-out-cmd
+        unsigned int pipe_flag : 2;    //00 means no pipe, 10 means pipe-in-cmd, 01 means pipe-out-cmd, 11 means pipe-in&out
+        unsigned int wait_flag : 1;    //1 means '&', 0 means nothing
     };
     unsigned int attr_val;
 } cmd_attr;
-
 
 #define CMD_NAME_LEN 32
 #define CMD_ARGS_LEN 64

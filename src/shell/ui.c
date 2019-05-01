@@ -1,5 +1,6 @@
 #include "shell.h"
 #include <assert.h>
+#include <errno.h>
 #define BUFF_SIZE 512
 #define CMDS_LEN 16
 static char title[BUFF_SIZE] = ">>"; //shell prompt
@@ -62,6 +63,10 @@ int make_cmds(char buf[], int buf_size, cmd_t cmds[], int cmds_size)
             args = strtok(NULL, " ");
             strcpy(cmds[i].dst_file, args);
         }
+        else if (strcmp(args, "&") == 0)
+        {
+            cmds[i].attr.wait_flag = 1;
+        }
         else if (strcmp(args, "|") == 0)
         {
             cmds[i].attr.pipe_flag |= PIPE_IN;
@@ -101,13 +106,13 @@ void ui_mainloop()
 
         if (strcmp(cmd_str, "") == 0)
             continue;
-        
+
         memset(input_buf, 0, sizeof(input_buf));
         memset(cmds, 0, sizeof(cmds));
         memcpy(input_buf, cmd_str, strlen(cmd_str));
 
         formatter(input_buf);
-        
+
         int cmd_num = make_cmds(input_buf, BUFF_SIZE, cmds, CMDS_LEN);
 
         if (buildin_handler(&cmds[0]) != -1)
@@ -138,7 +143,9 @@ void ui_mainloop()
                 int status = 0;
                 waitpid(pid, &status, 0);
                 if ((WEXITSTATUS(status)) == EXIT_FAILURE)
-                    perror("in parent process");
+                {
+                    puts(strerror(WEXITSTATUS(status)));
+                }
             }
         }
     }

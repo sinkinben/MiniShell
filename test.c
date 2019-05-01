@@ -22,19 +22,19 @@ void test2()
 
     puts(buffer);
     tree("/home/sin/desktop/workspace/OSLab/MiniShell", 0);
-    
+
     memset(buffer, 0, sizeof(buffer));
     getcwd(buffer, BUFSIZ);
     puts(buffer);
-
 }
 
 int main()
 {
-    printf("%d %d\n", EXIT_SUCCESS, EXIT_FAILURE);
+    test2();
 }
 void tree(char *dir, int depth)
 {
+    int i;
     char cwd_buff[128];
     getcwd(cwd_buff, sizeof(cwd_buff));
 
@@ -56,12 +56,23 @@ void tree(char *dir, int depth)
             {
                 continue;
             }
-            printf("%*s%s/\n", depth, "", entry->d_name);
+            for (i = 0; i < depth - 4; i++)
+                printf(" ");
+            printf("|");
+            for (i = 0; i < 3; i++)
+                printf("_");
+            printf("%s/\n", entry->d_name);
             tree(entry->d_name, depth + 4);
         }
         else
         {
-            printf("%*s%s\n", depth, "", entry->d_name);
+            printf("|");
+            for (i = 0; i < depth - 3; i++)
+                printf(" ");
+            printf("|");
+            for (i = 0; i < 3; i++)
+                printf("_");
+            printf("%s\n", entry->d_name);
         }
     }
     chdir(cwd_buff); //switch to original dir
@@ -111,5 +122,3 @@ void formatter(char *buf, int buf_size)
             insert_space(buf, buf_size, i + 1);
     }
 }
-
-
