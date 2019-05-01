@@ -47,3 +47,5 @@ echo hello >log
 cat /etc/passwd | wc -l
 cat <input.txt | sort | uniq | cat >output.txt
 ```
+
+
