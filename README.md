@@ -21,7 +21,6 @@ You can use commands in the following formats.
 >> command [argv] <  file
 >> command [argv] << file
 >> command [argv] | command1 [argv1] | ... | commandn [argvn]
->> command [argv] [< inputfile] [> outputfile] [| command2 ...]
 ```
 
 # Test Cases
