@@ -102,7 +102,7 @@ void external_handler(cmd_t cmds[], int cmd_num, int depth)
             dup2(file, 0);
             close(file);
         }
-
+        
         execvp(name, argv);
         exit(EXIT_SUCCESS);
     }

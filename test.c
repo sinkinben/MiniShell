@@ -9,6 +9,7 @@
 #include <errno.h>
 void tree(char *dir, int depth);
 void formatter(char *buf, int buf_size);
+void scan_dir(char *p);
 void test1()
 {
     char str[BUFSIZ] = "ls -l>file|cat<<sort>>l";
@@ -27,10 +28,38 @@ void test2()
     getcwd(buffer, BUFSIZ);
     puts(buffer);
 }
-
+void test3()
+{
+    scan_dir("/home/sin/desktop/workspace/OSLab/MiniShell/include/");
+}
+void test4()
+{
+    char *p = (getenv("PATH"));
+    char new[BUFSIZ] = "PATH=";
+    strcat(new, p);
+    strcat(new, ":/home");
+    if (putenv(new) == -1)
+        puts("****");
+    puts(p);
+    p = getenv("PATH");
+    puts(p);
+    
+}
 int main()
 {
-    test2();
+    test4();
+}
+
+void scan_dir(char *p)
+{
+    DIR *dir;
+    struct dirent *dp;
+    dir = opendir(p);
+    while ((dp = readdir(dir)) != NULL)
+    {
+        printf("%s\n", dp->d_name);
+    }
+    closedir(dir);
 }
 void tree(char *dir, int depth)
 {

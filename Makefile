@@ -7,7 +7,7 @@ SRC_DIR   = ./src
 BUILD_DIR = ./build
 BIN_DIR   = $(BUILD_DIR)/bin
 OBJ_DIR   = $(BUILD_DIR)/obj
-READLINE_DIR =  /lib/x86_64-linux-gnu/libreadline.so.6
+
 
 
 #Compiler
@@ -16,21 +16,20 @@ LD := gcc
 CFLAGS := -Wall -I $(INC_DIR)
 LFLAGS := $(CFLAGS) -lreadline -lpthread
 
-#All C Files
-C_FILES := $(wildcard $(SRC_DIR)/*/*.c)
+#MiniShell C Files
+SHELL_C_FILES := $(shell find $(SRC_DIR)/process $(SRC_DIR)/shell $(SRC_DIR)/string -name "*.c")
 
-#All Obj Files
-OBJ_FILES := $(patsubst %.c, %.o, $(subst $(SRC_DIR), $(OBJ_DIR), $(C_FILES)))
-
+#MiniShell Obj Files
+SHELL_OBJ_FILES := $(patsubst %.c, %.o, $(subst $(SRC_DIR), $(OBJ_DIR), $(SHELL_C_FILES)))
 
 #Build .c to .o
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c
 	@echo + CC $<
 	@mkdir -p $(dir $@)
 	@-$(CC) $(CFLAGS) -c -o $@ $<
-	
-#Build .o to bin exec files
-$(BIN_DIR)/$(MiniShell) : $(OBJ_FILES)
+
+#Build .o to bin 
+$(BIN_DIR)/$(MiniShell) : $(SHELL_OBJ_FILES)
 	@echo + LD $@
 	@mkdir -p $(dir $@)
 	@$(LD) -o $@ $^ $(LFLAGS)
@@ -42,6 +41,7 @@ clean :
 
 run : 
 	-make
+	./build-mylib.sh
 	$(BIN_DIR)/$(MiniShell)
 
 test :

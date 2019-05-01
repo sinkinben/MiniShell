@@ -21,6 +21,7 @@
 
 //functions declaration
 void ui_mainloop();
-
+int make_cmds(char buf[], int buf_size, cmd_t cmds[], int cmds_size);
+bool scan_dir(const char *path, const char *target);
 
 #endif
