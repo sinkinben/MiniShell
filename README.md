@@ -1,15 +1,8 @@
 # MiniShell
 Author: Kinben Sin   
-E-mail: sinkinben@{qq, outlook, gmail}.com  
-
-# Progress
-* Finish buildin-commands
-* Finish external command by execvp
-* Support more than one commands like `cat /etc/passwd | wc -l | wc | wc -l | grep 1 >> log`
 
 # TODO List
-* Multiple progress achieve by token '&'
-* Load external commands like `myecho`, `mycp`, `mytree`, etc  
+* Multiple progress achieve by token '&' 
 * To support the token `<<`
 
 # How to build&run MiniShell
@@ -46,6 +39,9 @@ cat /etc/passwd
 echo hello >log
 cat /etc/passwd | wc -l
 cat <input.txt | sort | uniq | cat >output.txt
+./build/bin/mycp /etc/passwd ./log
+./build/bin/myecho a b c
+etc
 ```
 
 
