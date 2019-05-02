@@ -5,7 +5,7 @@ void external_handler(cmd_t cmds[], int cmd_num, int depth)
     if (depth == -1)
         exit(EXIT_SUCCESS);
 
-    //let pipi-in cmd wait for pipe-out cmd's input
+    //let pipe-in cmd wait for pipe-out cmd's input
     cmd_t *cmd = &cmds[depth];
     pid_t pid;
     int fd[2];
@@ -38,15 +38,16 @@ void external_handler(cmd_t cmds[], int cmd_num, int depth)
             close(fd[1]);
         }
         external_handler(cmds, cmd_num, depth - 1);
+		exit(EXIT_SUCCESS);
     }
     else
     {
         int status = 0;
         waitpid(pid, &status, 0);
-        if (!status)
+        if ((WEXITSTATUS(status)) == EXIT_FAILURE)
         {
-            //fprintf(stderr, "In external_handler: wait failed\n");
-            strerror(errno);
+            fprintf(stderr, "In external_handler %d line: wait failed\n", __LINE__);
+            puts(strerror(errno));
         }
 
         // cmd[0] must be exec directly
