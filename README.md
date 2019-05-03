@@ -2,7 +2,6 @@
 Author: Kinben Sin   
 
 # TODO List
-* Multiple progress achieve by token '&' 
 * To support the token `<<`
 
 # How to build&run MiniShell
@@ -37,6 +36,7 @@ cat /etc/passwd | wc -l
 cat <input.txt | sort | uniq | cat >output.txt
 ./build/bin/mycp /etc/passwd ./log
 ./build/bin/myecho a b c
+./build/bin/sleep & 
 etc
 ```
 

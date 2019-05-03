@@ -11,6 +11,7 @@ typedef unsigned char bool;
 #define REIDR_OUT_CLEAR (0x1)
 #define PIPE_IN (0x2)
 #define PIPE_OUT (0x1)
+#define WAIT_BKGD (0x1)
 typedef union {
     struct
     {

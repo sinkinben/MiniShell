@@ -31,7 +31,6 @@ char *get_line(char *prompt)
     return line;
 }
 
-
 void ui_mainloop()
 {
     char *cmd_str;
@@ -78,11 +77,19 @@ void ui_mainloop()
             }
             else
             {
-                int status = 0;
-                waitpid(pid, &status, 0);
-                if ((WEXITSTATUS(status)) == EXIT_FAILURE)
+                bool wait_flag = cmds[cmd_num - 1].attr.wait_flag;
+                if (wait_flag == WAIT_BKGD)
                 {
-                    puts(strerror(WEXITSTATUS(status)));
+                    printf("[%d] run in background\n", pid);
+                }
+                else
+                {
+                    int status = 0;
+                    waitpid(pid, &status, 0);
+                    if ((WEXITSTATUS(status)) == EXIT_FAILURE)
+                    {
+                        puts(strerror(WEXITSTATUS(status)));
+                    }
                 }
             }
         }
