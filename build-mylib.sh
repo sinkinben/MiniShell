@@ -6,6 +6,6 @@ for str in $list
 do
     target=${str/$src_path\//}
     target=${target%.*}
-    gcc $str -o $dst_path/$target -lpthread
+    gcc $str -o $dst_path/$target -lpthread -lm
 done
 exit

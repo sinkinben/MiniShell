@@ -35,7 +35,7 @@ int make_cmds(char buf[], int buf_size, cmd_t cmds[], int cmds_size)
         }
         else if (strcmp(args, "&") == 0)
         {
-            cmds[i].attr.wait_flag = 1;
+            cmds[i].attr.wait_flag = WAIT_BKGD;
         }
         else if (strcmp(args, "|") == 0)
         {

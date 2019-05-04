@@ -34,15 +34,15 @@ char *get_line(char *prompt)
 
 void callback_child(int signo)
 {
-	pid_t pid;
-	int status = 0;
-	pid = wait(&status);
+    pid_t pid;
+    int status = 0;
+    pid = wait(&status);
 
-	if (WEXITSTATUS(status) ==  EXIT_FAILURE)
-	{
-		puts(strerror(WEXITSTATUS(status)));
-	}
-	printf("[%d]+ Done.\n", pid);
+    if (WEXITSTATUS(status) == EXIT_FAILURE)
+    {
+        puts(strerror(WEXITSTATUS(status)));
+    }
+    printf("[%d]+ Done.\n", pid);
 }
 
 void ui_mainloop()
@@ -95,11 +95,11 @@ void ui_mainloop()
                 if (wait_flag == WAIT_BKGD)
                 {
                     printf("[%d] run in background\n", pid);
-					signal(SIGCHLD, callback_child);
+                    signal(SIGCHLD, callback_child);
                 }
                 else
                 {
-					signal(SIGCHLD, SIG_IGN);
+                    signal(SIGCHLD, SIG_IGN);
                     int status = 0;
                     waitpid(pid, &status, 0);
                     if ((WEXITSTATUS(status)) == EXIT_FAILURE)

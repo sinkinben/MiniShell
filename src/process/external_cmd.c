@@ -3,7 +3,7 @@
 #include <signal.h>
 void external_handler(cmd_t cmds[], int cmd_num, int depth)
 {
-	signal(SIGCHLD, SIG_IGN);
+    signal(SIGCHLD, SIG_IGN);
     if (depth == -1)
         exit(EXIT_SUCCESS);
 
@@ -11,7 +11,6 @@ void external_handler(cmd_t cmds[], int cmd_num, int depth)
     cmd_t *cmd = &cmds[depth];
     pid_t pid;
     int fd[2];
-    
 
     char name[CMD_NAME_LEN] = {0};
     char args[CMD_ARGS_LEN] = {0};
@@ -40,7 +39,7 @@ void external_handler(cmd_t cmds[], int cmd_num, int depth)
             close(fd[1]);
         }
         external_handler(cmds, cmd_num, depth - 1);
-		exit(EXIT_SUCCESS);
+        exit(EXIT_SUCCESS);
     }
     else
     {
@@ -105,7 +104,7 @@ void external_handler(cmd_t cmds[], int cmd_num, int depth)
             dup2(file, 0);
             close(file);
         }
-        
+
         execvp(name, argv);
         exit(EXIT_SUCCESS);
     }
