@@ -1,7 +1,9 @@
 #include "shell.h"
 #include <errno.h>
+#include <signal.h>
 void external_handler(cmd_t cmds[], int cmd_num, int depth)
 {
+	signal(SIGCHLD, SIG_IGN);
     if (depth == -1)
         exit(EXIT_SUCCESS);
 

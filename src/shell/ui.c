@@ -1,6 +1,7 @@
 #include "shell.h"
 #include <assert.h>
 #include <errno.h>
+#include <signal.h>
 #define BUFF_SIZE 512
 #define CMDS_LEN 16
 static char title[BUFF_SIZE] = ">>"; //shell prompt
@@ -29,6 +30,19 @@ char *get_line(char *prompt)
     if (line && *line)
         add_history(line);
     return line;
+}
+
+void callback_child(int signo)
+{
+	pid_t pid;
+	int status = 0;
+	pid = wait(&status);
+
+	if (WEXITSTATUS(status) ==  EXIT_FAILURE)
+	{
+		puts(strerror(WEXITSTATUS(status)));
+	}
+	printf("[%d]+ Done.\n", pid);
 }
 
 void ui_mainloop()
@@ -81,9 +95,11 @@ void ui_mainloop()
                 if (wait_flag == WAIT_BKGD)
                 {
                     printf("[%d] run in background\n", pid);
+					signal(SIGCHLD, callback_child);
                 }
                 else
                 {
+					signal(SIGCHLD, SIG_IGN);
                     int status = 0;
                     waitpid(pid, &status, 0);
                     if ((WEXITSTATUS(status)) == EXIT_FAILURE)
