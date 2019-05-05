@@ -1,23 +1,21 @@
 #include "ping.h"
 
-#define WAIT_TIME 5
+static int send_order = 1;
+static int recv_order = 0;
+char send_buff[SEND_BUFFER_SIZE];
+char recv_buff[RECV_BUFFER_SIZE];
+struct hostent *host = NULL; //host entry, eg: host->h_name
+int sock_icmp;				 //icmp socket
+char *ip_str = NULL;
+struct timeval t_send, t_recv;
+double max = 0, min = 0, avg = 0, mdev = 0;
 
-char SendBuffer[SEND_BUFFER_SIZE];
-char RecvBuffer[RECV_BUFFER_SIZE];
-int nRecv = 0;	//实际接收到的报文数
-struct timeval FirstSendTime;	//用以计算总的时间
-struct timeval LastRecvTime;
-double min = 0.0;
-double avg = 0.0;
-double max = 0.0;
-double mdev = 0.0;
-
-u_int16_t Compute_cksum(struct icmp *pIcmp)
+u_int16_t get_cksum(struct icmp *icmp_ptr)
 {
-	u_int16_t *data = (u_int16_t *)pIcmp;
+	u_int16_t *data = (u_int16_t *)icmp_ptr;
 	int len = ICMP_LEN;
 	u_int32_t sum = 0;
-	
+
 	while (len > 1)
 	{
 		sum += *data++;
@@ -30,225 +28,217 @@ u_int16_t Compute_cksum(struct icmp *pIcmp)
 		sum += tmp;
 	}
 
-	//ICMP校验和带进位
+	//check sum
 	while (sum >> 16)
 		sum = (sum >> 16) + (sum & 0x0000ffff);
 	sum = ~sum;
-	
 	return sum;
 }
-
-void SetICMP(u_int16_t seq)
+void set_icmp(u_int16_t seq)
 {
-	struct icmp *pIcmp;
-	struct timeval *pTime;
+	struct icmp *picmp = NULL;
+	struct timeval *ptime = NULL;
 
-	pIcmp = (struct icmp*)SendBuffer;
-	
-	/* 类型和代码分别为ICMP_ECHO,0代表请求回送 */
-	pIcmp->icmp_type = ICMP_ECHO;
-	pIcmp->icmp_code = 0;
-	pIcmp->icmp_cksum = 0;		//校验和
-	pIcmp->icmp_seq = seq;		//序号
-	pIcmp->icmp_id = getpid();	//取进程号作为标志
-	pTime = (struct timeval *)pIcmp->icmp_data;
-	gettimeofday(pTime, NULL);	//数据段存放发送时间
-	pIcmp->icmp_cksum = Compute_cksum(pIcmp);
-	
-	if (1 == seq)
-		FirstSendTime = *pTime;
+	picmp = (struct icmp *)send_buff;
+
+	picmp->icmp_type = ICMP_ECHO; //request
+	picmp->icmp_code = 0;
+
+	picmp->icmp_cksum = 0;
+	picmp->icmp_seq = seq;
+	picmp->icmp_id = getpid();
+
+	ptime = (struct timeval *)picmp->icmp_data;
+
+	gettimeofday(ptime, NULL);
+
+	picmp->icmp_cksum = get_cksum(picmp);
+
+	if (seq == 1)
+		t_send = *ptime;
 }
 
-void SendPacket(int sock_icmp, struct sockaddr_in *dest_addr, int nSend)
+void send_package(int sock_icmp, struct sockaddr_in *dest, int send_order)
 {
-	SetICMP(nSend);
-	if (sendto(sock_icmp, SendBuffer, ICMP_LEN, 0,
-		(struct sockaddr *)dest_addr, sizeof(struct sockaddr_in)) < 0)
+	set_icmp(send_order);
+	int flag = sendto(sock_icmp, send_buff, ICMP_LEN, 0, (struct sockaddr *)dest, sizeof(struct sockaddr_in));
+	if (flag < 0)
 	{
 		perror("sendto");
 		return;
 	}
 }
 
-double GetRtt(struct timeval *RecvTime, struct timeval *SendTime)
+double get_rtt(struct timeval *recv, struct timeval *send)
 {
-	struct timeval sub = *RecvTime;
+	struct timeval sub = *recv;
 
-	if ((sub.tv_usec -= SendTime->tv_usec) < 0)
+	if ((sub.tv_usec -= send->tv_usec) < 0)
 	{
 		--(sub.tv_sec);
 		sub.tv_usec += 1000000;
 	}
-	sub.tv_sec -= SendTime->tv_sec;
-	
+	sub.tv_sec -= send->tv_sec;
+
 	return sub.tv_sec * 1000.0 + sub.tv_usec / 1000.0; //转换单位为毫秒
 }
-
-int unpack(struct timeval *RecvTime)
+void signal_handler(int signo)
 {
-	struct ip *Ip = (struct ip *)RecvBuffer;
-	struct icmp *Icmp;
-	int ipHeadLen;
+	double tmp;
+	avg /= recv_order;
+	tmp = mdev / recv_order - avg * avg;
+	mdev = sqrt(tmp);
+
+	if (NULL != host)
+		printf("--- %s  ping handler ---\n", host->h_name);
+	else
+		printf("--- %s  ping handler ---\n", ip_str);
+
+	printf("%d packets transmitted, %d received, %d%% packet loss, time %dms\n",
+		   send_order,
+		   recv_order,
+		   (int)(double)(send_order - recv_order) / send_order * 100,
+		   (int)get_rtt(&t_recv, &t_send));
+	printf("rtt min/avg/max/mdev = %.3f/%.3f/%.3f/%.3f ms\n", min, avg, max, mdev);
+
+	close(sock_icmp);
+	exit(0);
+}
+
+int unpack(struct timeval *t)
+{
+	struct ip *ip_ptr = (struct ip *)recv_buff;
+	struct icmp *icmp_ptr;
+	int ip_hlen = ip_ptr->ip_hl << 2;
 	double rtt;
 
-	ipHeadLen = Ip->ip_hl << 2;	//ip_hl字段单位为4字节
-	Icmp = (struct icmp *)(RecvBuffer + ipHeadLen);
+	icmp_ptr = (struct icmp *)(recv_buff + ip_hlen);
 
-	//判断接收到的报文是否是自己所发报文的响应
-	if ((Icmp->icmp_type == ICMP_ECHOREPLY) && Icmp->icmp_id == getpid())
+	//whether it is a echo reply
+	if (icmp_ptr->icmp_type == ICMP_ECHOREPLY && icmp_ptr->icmp_id == getpid())
 	{
-		struct timeval *SendTime = (struct timeval *)Icmp->icmp_data;
-		rtt = GetRtt(RecvTime, SendTime);
-	
+		struct timeval *send_time = (struct timeval *)icmp_ptr->icmp_data;
+		rtt = get_rtt(t, send_time);
+
 		printf("%u bytes from %s: icmp_seq=%u ttl=%u time=%.1f ms\n",
-			ntohs(Ip->ip_len) - ipHeadLen,
-			inet_ntoa(Ip->ip_src),
-			Icmp->icmp_seq,
-			Ip->ip_ttl,
-			rtt);
-		
+			   ntohs(ip_ptr->ip_len) - ip_hlen,
+			   inet_ntoa(ip_ptr->ip_src),
+			   icmp_ptr->icmp_seq,
+			   ip_ptr->ip_ttl,
+			   rtt);
+
 		if (rtt < min || 0 == min)
 			min = rtt;
 		if (rtt > max)
 			max = rtt;
 		avg += rtt;
 		mdev += rtt * rtt;
-		
 		return 0;
 	}
-		
 	return -1;
 }
-
-
-void Statistics(int signo)
+int recv_package(int sock_icmp, struct sockaddr_in *dest)
 {
-	double tmp;
-	avg /= nRecv;
-	tmp = mdev / nRecv - avg * avg;
-	mdev = sqrt(tmp);
-	
-	if (NULL != pHost)
-		printf("--- %s  ping statistics ---\n", pHost->h_name);
-	else
-		printf("--- %s  ping statistics ---\n", IP);
-		
-	printf("%d packets transmitted, %d received, %d%% packet loss, time %dms\n"
-		, nSend
-		, nRecv
-		, (nSend - nRecv) / nSend * 100
-		, (int)GetRtt(&LastRecvTime, &FirstSendTime));
-	printf("rtt min/avg/max/mdev = %.3f/%.3f/%.3f/%.3f ms\n",
-		min, avg, max, mdev);
-	
-	close(sock_icmp);
-	exit(0);
-}
+	int recv_bytes = 0;
+	int addr_len = sizeof(struct sockaddr_in);
 
-int RecvePacket(int sock_icmp, struct sockaddr_in *dest_addr)
-{
-	int RecvBytes = 0;
-	int addrlen = sizeof(struct sockaddr_in);
-	struct timeval RecvTime;
-	
-	signal(SIGALRM, Statistics);
-	alarm(WAIT_TIME);
-	if ((RecvBytes = recvfrom(sock_icmp, RecvBuffer, RECV_BUFFER_SIZE,
-			0, (struct sockaddr *)dest_addr, &addrlen)) < 0)
+	struct timeval recv_time;
+
+	signal(SIGALRM, signal_handler);
+	alarm(5);
+
+	recv_bytes = recvfrom(sock_icmp, recv_buff, RECV_BUFFER_SIZE, 0, (struct sockaddr *)dest, &addr_len);
+	if (recv_bytes < 0)
 	{
 		perror("recvfrom");
 		return 0;
 	}
-	//printf("nRecv=%d\n", RecvBytes);
-	gettimeofday(&RecvTime, NULL);
-	LastRecvTime = RecvTime;
 
-	if (unpack(&RecvTime) == -1)
+	gettimeofday(&recv_time, NULL);
+	t_recv = recv_time;
+
+	if (unpack(&recv_time) == -1)
 	{
-		return -1; 
+		return -1;
 	}
-	nRecv++;
+	recv_order++;
+	//return recv_bytes;
 }
 
-struct hostent * pHost = NULL;		//保存主机信息
-int sock_icmp;				//icmp套接字
-int nSend = 1;
-char *IP = NULL;
-
-void Call(int argc, char *argv[])
+void ping(int argc, char *argv[])
 {
-
+	struct sockaddr_in dest;
 	struct protoent *protocol;
-	struct sockaddr_in dest_addr; 	//IPv4专用socket地址,保存目的地址
 
-	in_addr_t inaddr;		//ip地址（网络字节序）
+	in_addr_t inaddr;
 
 	if (argc < 2)
 	{
-		printf("Usage: %s [hostname/IP address]\n", argv[0]);
-		exit(EXIT_FAILURE);	
+		fprintf(stderr, "Hostname or IP address is needed\n");
+		exit(EXIT_FAILURE);
 	}
 
 	if ((protocol = getprotobyname("icmp")) == NULL)
 	{
-		perror("getprotobyname");
+		fprintf(stderr, "%s %d:", __FILE__, __LINE__);
+		perror("getprotocolbyname");
 		exit(EXIT_FAILURE);
 	}
 
-	/* 创建ICMP套接字 */
-	//AF_INET:IPv4, SOCK_RAW:IP协议数据报接口, IPPROTO_ICMP:ICMP协议
-	if ((sock_icmp = socket(PF_INET, SOCK_RAW, protocol->p_proto/*IPPROTO_ICMP*/)) < 0)
+	//create socket
+	if ((sock_icmp = socket(PF_INET, SOCK_RAW, protocol->p_proto)) < 0)
 	{
-		perror("socket");
+		perror("socket failed");
 		exit(EXIT_FAILURE);
 	}
-	dest_addr.sin_family = AF_INET;
 
-	/* 将点分十进制ip地址转换为网络字节序 */
-	if ((inaddr = inet_addr(argv[1])) == INADDR_NONE)
+	dest.sin_family = AF_INET;
+
+	if ((inaddr = inet_addr(argv[1])) == INADDR_NONE) //argv[1] is not an ip string
 	{
-		/* 转换失败，表明是主机名,需通过主机名获取ip */
-		if ((pHost = gethostbyname(argv[1])) == NULL)
+		if ((host = gethostbyname(argv[1])) == NULL)
 		{
-			herror("gethostbyname()");
+			herror("gethostbyname");
 			exit(EXIT_FAILURE);
 		}
-		memmove(&dest_addr.sin_addr, pHost->h_addr_list[0], pHost->h_length);
+		memmove(&dest.sin_addr, host->h_addr_list[0], host->h_length);
+	}
+	else //argv[1] is an ip string
+	{
+		memmove(&dest.sin_addr, &inaddr, sizeof(struct in_addr));
+	}
+
+	if (host != NULL)
+	{
+		printf("ping %s\n", host->h_name);
 	}
 	else
 	{
-		memmove(&dest_addr.sin_addr, &inaddr, sizeof(struct in_addr));
+		printf("ping %s\n", argv[1]);
 	}
 
-	if (NULL != pHost)
-		printf("PING %s", pHost->h_name);
-	else
-		printf("PING %s", argv[1]);
-	printf("(%s) %d bytes of data.\n", inet_ntoa(dest_addr.sin_addr), ICMP_LEN);
+	printf("%s, bytes of data: %d\n", inet_ntoa(dest.sin_addr), ICMP_LEN);
 
-	IP = argv[1];
-	signal(SIGINT, Statistics);
-	while (nSend < SEND_NUM)
+	ip_str = argv[1];
+	signal(SIGINT, signal_handler); // Ctrl + C Interupt handler
+
+	while (send_order < SEND_NUM)
 	{
-		int unpack_ret;
-		
-		SendPacket(sock_icmp, &dest_addr, nSend);
-		
-		unpack_ret = RecvePacket(sock_icmp, &dest_addr);
-		if (-1 == unpack_ret)	//（ping回环时）收到了自己发出的报文,重新等待接收
-			RecvePacket(sock_icmp, &dest_addr);
-			
+		send_package(sock_icmp, &dest, send_order);
 
+		int unpack_ret = recv_package(sock_icmp, &dest);
+		if (unpack_ret == -1)
+		{
+			recv_package(sock_icmp, &dest);
+		}
 		sleep(1);
-		nSend++;
+		send_order++;
 	}
-	
-	Statistics(0);	//输出信息，关闭套接字
-}
 
+	signal_handler(0);
+}
 int main(int argc, char *argv[])
 {
-	Call(argc, argv);
-
+	ping(argc, argv);
 	return 0;
 }

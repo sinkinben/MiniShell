@@ -14,12 +14,12 @@ make run
 You can use commands in the following formats.  
 `item` is necessary, `[item]` is alternative.  
 ```
->> command [argv]
->> command [argv] >  file
->> command [argv] >> file
->> command [argv] <  file
->> command [argv] << file
->> command [argv] | command1 [argv1] | ... | commandn [argvn]
+>> command [argv] [&]
+>> command [argv] >  file [&]
+>> command [argv] >> file [&]
+>> command [argv] <  file [&]
+>> command [argv] << token [&]
+>> command [argv] | command1 [argv1] | ... | commandn [argvn] [&]
 ```
 
 # Test Cases
@@ -37,6 +37,8 @@ cat <input.txt | sort | uniq | cat >output.txt
 ./build/bin/mycp /etc/passwd ./log
 ./build/bin/myecho a b c
 ./build/bin/sleep & 
+sudo ./build/bin/ping 127.0.0.1
+sudo ./build/bin/ping www.baidu.com
 etc
 ```
 
